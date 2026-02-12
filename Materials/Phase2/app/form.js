@@ -15,6 +15,25 @@ function logSection(title, data) {
 }
 
 // -------------- Form wiring --------------
+function isResourceNameValid(value) {
+  const trimmed = value.trim();
+  const allowedPattern = /^[a-zA-Z0-9äöåÄÖÅ ]+$/;
+
+  return trimmed.length >= 5 &&
+         trimmed.length <= 30 &&
+         allowedPattern.test(trimmed);
+}
+
+function isResourceDescriptionValid(value) {
+  const trimmed = value.trim();
+  const allowedPattern = /^[a-zA-Z0-9äöåÄÖÅ ]+$/;
+
+  return trimmed.length >= 10 &&
+         trimmed.length <= 50 &&
+         allowedPattern.test(trimmed);
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = $("resourceForm");
   if (!form) {
@@ -26,21 +45,43 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function onSubmit(event) {
+
   event.preventDefault();
+
   const submitter = event.submitter;
   const actionValue = submitter && submitter.value ? submitter.value : "create";
+
+  // Trim values first
+  const name = $("resourceName")?.value.trim() ?? "";
+  const description = $("resourceDescription")?.value.trim() ?? "";
+
+  // Validate BEFORE sending
+  if (!isResourceNameValid(name) || !isResourceDescriptionValid(description)) {
+
+    console.warn("Invalid form data. Request NOT sent.");
+
+    alert("Please enter valid resource name and description.");
+
+    return; // STOP — do not send request
+  }
+
+  // Clean values back into form
+  $("resourceName").value = name;
+  $("resourceDescription").value = description;
+
   const payload = {
     action: actionValue,
-    resourceName: $("resourceName")?.value ?? "",
-    resourceDescription: $("resourceDescription")?.value ?? "",
-    resourceAvailable: $("resourceAvailable")?.value ?? "",
+    resourceName: name,
+    resourceDescription: description,
+    resourceAvailable: $("resourceAvailable")?.checked ?? false,
     resourcePrice: $("resourcePrice")?.value ?? "",
-    resourcePriceUnit: $("resourcePriceUnit")?.value ?? ""
+    resourcePriceUnit: document.querySelector('input[name="resourcePriceUnit"]:checked')?.value ?? ""
   };
 
   logSection("Sending payload to httpbin.org/post", payload);
 
   try {
+
     const response = await fetch("https://httpbin.org/post", {
       method: "POST",
       headers: {
@@ -50,20 +91,19 @@ async function onSubmit(event) {
     });
 
     if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new Error(`HTTP ${response.status} ${response.statusText}\n${text}`);
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const data = await response.json();
 
-    console.group("Response from httpbin.org");
-    console.log("Status:", response.status);
-    console.log("URL:", data.url);
-    console.log("You sent (echo):", data.json);
-    console.log("Headers (echoed):", data.headers);
-    console.groupEnd();
+    console.log("SUCCESS:", data);
+
+    alert("Resource created successfully!");
 
   } catch (err) {
+
     console.error("POST error:", err);
+
+    alert("Server error. Please try again.");
   }
 }
