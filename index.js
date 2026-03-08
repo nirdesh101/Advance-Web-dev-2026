@@ -72,68 +72,6 @@ const resourceValidators = [
     .withMessage("resourcePriceUnit must be 'hour', 'day', 'week', or 'month'"),
 ];
 
-// POST /api/resources -> create (minimal)
-// app.post('/api/resources', resourceValidators, async (req, res) => {
-//   // Validate input
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({
-//       ok: false,
-//       errors: errors.array().map(e => ({ field: e.path, msg: e.msg })),
-//     });
-//   }
-
-//   // Pull normalized values (coerced by express-validator .toBoolean/.toFloat)
-//   let {
-//     action = '',
-//     resourceName = '',
-//     resourceDescription = '',
-//     resourceAvailable = false,
-//     resourcePrice = 0,
-//     resourcePriceUnit = ''
-//   } = req.body;
-
-//   // Log (optional)
-//   console.log("The client's POST request ", `[${timestamp()}]`);
-//   console.log('------------------------------');
-//   console.log('Action ➡️ ', action);
-//   console.log('Name ➡️ ', resourceName);
-//   console.log('Description ➡️ ', resourceDescription);
-//   console.log('Availability ➡️ ', resourceAvailable);
-//   console.log('Price ➡️ ', resourcePrice);
-//   console.log('Price unit ➡️ ', resourcePriceUnit);
-//   console.log('------------------------------');
-
-//   if (action !== 'create') {
-//     return res.status(400).json({ ok: false, error: 'Only create is implemented right now' });
-//   }
-
-//   resourceAvailable = false;
-
-//   try {
-//     const insertSql = `
-//       INSERT INTO resources (name, description, available, price, price_unit)
-//       VALUES ($1, $2, $3, $4, $5)
-//       RETURNING id, name, description, available, price, price_unit, created_at
-//     `;
-//     const params = [
-//       crypto.createHash('sha256').update(resourceName, 'utf8').digest('hex'),
-//       resourceDescription,
-//       Boolean(resourceAvailable),
-//       Number(resourcePrice)*2,
-//       resourcePriceUnit
-//     ];
-
-//     const { rows } = await pool.query(insertSql, params);
-//     const created = rows[0];
-
-//     return res.status(201).json({ ok: true, data: created });
-//   } catch (err) {
-//     console.error('DB insert failed:', err);
-//     return res.status(500).json({ ok: false, error: 'Database error' });
-//   }
-// });
-
 app.post('/api/resources', resourceValidators, async (req, res) => {
 
   // Validate input
